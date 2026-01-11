@@ -1,0 +1,74 @@
+### 测试 1：模拟园长登录（密码正确）
+# 点击左边的绿色小三角运行 ->
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "123456",
+  "role": "admin"
+}
+
+### 测试 2：模拟密码错误的情况
+# 点击左边的绿色小三角运行 ->
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "wrong-password",
+  "role": "admin"
+}
+
+### 测试 3：添加一门课程
+# 点击左边的绿色小三角运行 ->
+POST http://localhost:8080/api/courses
+Content-Type: application/json
+
+{ "name": "乐高积木课",
+  "description": "锻炼动手能力和逻辑思维",
+  "teacherName": "李老师",
+  "classTime": "周一上午 10:00",
+  "location": "302 教室" }
+
+### 测试 4：查询所有课程
+# 点击左边的绿色小三角运行 ->
+GET http://localhost:8080/api/courses
+### 测试 5：添加一个科目（类型1）
+POST http://localhost:8080/api/resources
+Content-Type: application/json
+
+{
+  "name": "全脑开发课",
+  "type": 1
+}
+
+### 测试 6：添加一个老师（类型2）
+POST http://localhost:8080/api/resources
+Content-Type: application/json
+
+{
+  "name": "王老师",
+  "type": 2
+}
+
+### 测试 7：获取所有老师
+GET http://localhost:8080/api/resources?type=2
+
+
+**请执行以下操作：**
+1.  把上面的 Java 代码分别创建好。
+2.  重启后端。
+3.  运行测试脚本 5 和 6，看看是不是返回了数据。
+4.  运行测试脚本 7，看看能不能查到刚才加的“王老师”。
+
+**完成后告诉我，我们就可以去改造前端页面，把输入框变成下拉框了！**
+
+### 测试 8：AI 评语生成
+POST http://localhost:8080/api/ai/generate
+Content-Type: application/json
+
+{
+  "studentName": "小糯米",
+  "keywords": "午睡很快，自己穿鞋，分享玩具"
+}
