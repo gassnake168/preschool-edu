@@ -4,6 +4,7 @@ import javax.persistence.*;
 import lombok.Data;
 
 import java.util.List;
+import javax.validation.constraints.NotBlank;
 
 /**
  * 课程实体类
@@ -21,12 +22,14 @@ public class Course {
     private Long id;
 
     // 课程名称 (比如：乐高积木课)
+    @NotBlank(message = "课程名称不能为空")
     private String name;
 
     // 课程描述 (比如：培养孩子的动手能力)
     private String description;
 
     // 授课老师 (比如：李老师)
+    @NotBlank(message = "授课老师不能为空")
     private String teacherName;
 
     // 上课时间 (比如：周一上午 10:00)

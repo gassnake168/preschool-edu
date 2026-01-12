@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/students")
@@ -28,13 +29,7 @@ public class StudentController {
     }
 
     @PostMapping
-    public Map<String, Object> addStudent(@RequestBody Student student) {
-        if (student.getName() == null || student.getName().trim().isEmpty()) {
-            return Map.of("code", 400, "message", "学生姓名不能为空");
-        }
-        if (student.getParentUsername() == null || student.getParentUsername().trim().isEmpty()) {
-            return Map.of("code", 400, "message", "家长账号不能为空");
-        }
+    public Map<String, Object> addStudent(@Valid @RequestBody Student student) {
         Student saved = studentRepository.save(student);
         Map<String, Object> result = new HashMap<>();
         result.put("code", 200);

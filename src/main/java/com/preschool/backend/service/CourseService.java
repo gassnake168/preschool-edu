@@ -3,7 +3,9 @@ package com.preschool.backend.service;
 import com.preschool.backend.entity.Course;
 import com.preschool.backend.repository.CourseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +50,7 @@ public class CourseService {
     // 3. (新增) 删除课程
     public void deleteCourse(Long id) {
         if (!courseRepository.existsById(id)) {
-            throw new IllegalArgumentException("课程不存在");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "课程不存在");
         }
         courseRepository.deleteById(id);
     }
@@ -71,7 +73,7 @@ public class CourseService {
 
             return courseRepository.save(existingCourse);
         } else {
-            throw new IllegalArgumentException("找不到ID为 " + id + " 的课程");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "找不到ID为 " + id + " 的课程");
         }
     }
 }
