@@ -2,6 +2,7 @@ package com.preschool.backend.controller;
 
 import com.preschool.backend.entity.Course;
 import com.preschool.backend.service.CourseService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,11 +18,17 @@ public class CourseController {
     @Autowired
     private CourseService courseService;
 
+    @Value("${security.allow-anonymous:false}")
+    private boolean allowAnonymous;
+
     @GetMapping
     public ResponseEntity<?> getAllCourses(
             Authentication authentication,
             @RequestParam(required = false) String teacherName,
             @RequestParam(required = false) String parentUsername) {
+        if (allowAnonymous && (authentication == null || authentication.getName() == null)) {
+            return ResponseEntity.ok(courseService.getAllCourses(teacherName, parentUsername));
+        }
         if (authentication == null || authentication.getName() == null) {
             return ResponseEntity.status(401).body("未登录或登录已过期");
         }

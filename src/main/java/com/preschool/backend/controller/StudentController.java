@@ -2,6 +2,7 @@ package com.preschool.backend.controller;
 
 import com.preschool.backend.entity.Student;
 import com.preschool.backend.repository.StudentRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,9 @@ public class StudentController {
     @Autowired
     private StudentRepository studentRepository;
 
+    @Value("${security.allow-anonymous:false}")
+    private boolean allowAnonymous;
+
     @GetMapping
     public List<Student> getAllStudents() {
         return studentRepository.findAll();
@@ -29,6 +33,12 @@ public class StudentController {
     @GetMapping("/my")
     public List<Student> getStudentsByParent(Authentication authentication,
                                               @RequestParam(required = false) String parentUsername) {
+        if (allowAnonymous) {
+            if (parentUsername == null || parentUsername.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "家长账号不能为空");
+            }
+            return studentRepository.findByParentUsername(parentUsername);
+        }
         if (authentication == null || authentication.getName() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录或登录已过期");
         }
