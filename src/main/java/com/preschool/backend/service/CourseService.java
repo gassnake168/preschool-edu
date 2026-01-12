@@ -47,6 +47,9 @@ public class CourseService {
 
     // 3. (新增) 删除课程
     public void deleteCourse(Long id) {
+        if (!courseRepository.existsById(id)) {
+            throw new IllegalArgumentException("课程不存在");
+        }
         courseRepository.deleteById(id);
     }
 
@@ -68,7 +71,7 @@ public class CourseService {
 
             return courseRepository.save(existingCourse);
         } else {
-            throw new RuntimeException("找不到ID为 " + id + " 的课程");
+            throw new IllegalArgumentException("找不到ID为 " + id + " 的课程");
         }
     }
 }

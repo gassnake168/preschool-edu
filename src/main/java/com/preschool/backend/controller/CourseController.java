@@ -32,6 +32,8 @@ public class CourseController {
         try {
             courseService.deleteCourse(id);
             return ResponseEntity.ok("删除成功");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("删除失败");
         }
@@ -43,6 +45,8 @@ public class CourseController {
         try {
             Course updated = courseService.updateCourse(id, course);
             return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("修改失败");
         }

@@ -31,6 +31,13 @@ public class AuthController {
     public Map<String, Object> login(@RequestBody LoginRequest request) {
         Map<String, Object> result = new HashMap<>();
 
+        if (request == null || request.getUsername() == null || request.getUsername().trim().isEmpty()
+                || request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            result.put("code", 400);
+            result.put("message", "用户名和密码不能为空");
+            return result;
+        }
+
         try {
             // 从数据库查找用户
             Optional<com.preschool.backend.entity.User> userOpt = userRepository.findByUsername(request.getUsername());

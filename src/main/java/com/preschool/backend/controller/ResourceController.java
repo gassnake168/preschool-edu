@@ -55,11 +55,7 @@ public class ResourceController {
             }
 
             // 检查重复
-            List<SchoolResource> existing = resourceRepository.findAllByType(resource.getType());
-            boolean isDuplicate = existing.stream()
-                    .anyMatch(r -> r.getName().trim().equalsIgnoreCase(resource.getName().trim()));
-
-            if (isDuplicate) {
+            if (resourceRepository.existsByTypeAndNameIgnoreCase(resource.getType(), resource.getName().trim())) {
                 Map<String, Object> error = new HashMap<>();
                 error.put("code", 400);
                 error.put("message", "该资源名称已存在");
