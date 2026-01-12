@@ -38,9 +38,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
         Map<String, Object> body = new HashMap<>();
-        body.put("code", ex.getStatusCode().value());
+        body.put("code", ex.getStatus().value());
         body.put("message", ex.getReason());
-        return ResponseEntity.status(ex.getStatusCode()).body(body);
+        return ResponseEntity.status(ex.getStatus()).body(body);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
