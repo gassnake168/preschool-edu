@@ -12,9 +12,13 @@ export default function ProfileModal({ isOpen, user, onUpdate, onClose, showDial
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         try {
+            const token = user?.token;
             const res = await fetch('http://localhost:8080/api/users/profile', {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
                 body: JSON.stringify({
                     username: user.username,
                     ...profileData

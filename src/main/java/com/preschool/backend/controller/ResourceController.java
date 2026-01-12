@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/api/resources")
@@ -36,30 +37,10 @@ public class ResourceController {
      * 例子: POST /api/resources
      */
     @PostMapping
-    public ResponseEntity<?> addResource(@RequestBody SchoolResource resource) {
+    public ResponseEntity<?> addResource(@Valid @RequestBody SchoolResource resource) {
         try {
-            // 验证资源名称
-            if (resource.getName() == null || resource.getName().trim().isEmpty()) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("code", 400);
-                error.put("message", "资源名称不能为空");
-                return ResponseEntity.badRequest().body(error);
-            }
-
-            // 验证资源类型
-            if (resource.getType() == null || resource.getType() < 1 || resource.getType() > 3) {
-                Map<String, Object> error = new HashMap<>();
-                error.put("code", 400);
-                error.put("message", "资源类型必须是 1(科目)、2(老师) 或 3(地点)");
-                return ResponseEntity.badRequest().body(error);
-            }
-
             // 检查重复
-            List<SchoolResource> existing = resourceRepository.findAllByType(resource.getType());
-            boolean isDuplicate = existing.stream()
-                    .anyMatch(r -> r.getName().trim().equalsIgnoreCase(resource.getName().trim()));
-
-            if (isDuplicate) {
+            if (resourceRepository.existsByTypeAndNameIgnoreCase(resource.getType(), resource.getName().trim())) {
                 Map<String, Object> error = new HashMap<>();
                 error.put("code", 400);
                 error.put("message", "该资源名称已存在");

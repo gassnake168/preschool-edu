@@ -20,20 +20,26 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private static String secretKey;
-    private static long expirationTime;
+    private final String secretKey;
+    private final long expirationTime;
+    private SecretKey signingKey;
 
-    /**
-     * 通过 Spring 注入配置值
-     */
-    @Value("${jwt.secret.key}")
-    public void setSecretKey(String key) {
-        JwtUtil.secretKey = key;
+    public JwtUtil(@Value("${jwt.secret.key}") String secretKey,
+                   @Value("${jwt.expiration.ms}") long expirationTime) {
+        this.secretKey = secretKey;
+        this.expirationTime = expirationTime;
     }
 
-    @Value("${jwt.expiration.ms}")
-    public void setExpirationTime(long expiration) {
-        JwtUtil.expirationTime = expiration;
+    @javax.annotation.PostConstruct
+    public void init() {
+        if (secretKey == null || secretKey.trim().isEmpty()) {
+            throw new IllegalStateException("JWT secret key is missing");
+        }
+        try {
+            signingKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            throw new IllegalStateException("JWT secret key is invalid", e);
+        }
     }
 
     /**
@@ -43,18 +49,15 @@ public class JwtUtil {
      * @param role     角色
      * @return JWT token字符串
      */
-    public static String generateToken(String username, String role) {
+    public String generateToken(String username, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
-
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
-
         return Jwts.builder()
                 .claims(claims)
                 .subject(username)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(key)
+                .signWith(signingKey)
                 .compact();
     }
 
@@ -64,11 +67,10 @@ public class JwtUtil {
      * @param token JWT token
      * @return true 如果有效，false 如果无效或过期
      */
-    public static boolean validateToken(String token) {
+    public boolean validateToken(String token) {
         try {
-            SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
             Jwts.parser()
-                    .verifyWith(key)
+                    .verifyWith(signingKey)
                     .build()
                     .parseSignedClaims(token);
             return true;
@@ -83,10 +85,9 @@ public class JwtUtil {
      * @param token JWT token
      * @return 用户名
      */
-    public static String getUsernameFromToken(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
@@ -99,10 +100,9 @@ public class JwtUtil {
      * @param token JWT token
      * @return 角色
      */
-    public static String getRoleFromToken(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    public String getRoleFromToken(String token) {
         Claims claims = Jwts.parser()
-                .verifyWith(key)
+                .verifyWith(signingKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();

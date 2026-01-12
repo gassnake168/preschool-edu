@@ -32,6 +32,13 @@ public class AiController {
         String studentName = params.get("studentName");
         String keywords = params.get("keywords");
 
+        if (studentName == null || studentName.trim().isEmpty()
+                || keywords == null || keywords.trim().isEmpty()) {
+            Map<String, String> errorResult = new HashMap<>();
+            errorResult.put("error", "学生姓名和关键词不能为空");
+            return ResponseEntity.badRequest().body(errorResult);
+        }
+
         // 1. 如果用户没有配置 Key，或者填的是 mock，我们就返回模拟数据（方便测试）
         if (apiKey == null || apiKey.contains("你的_API_KEY") || "mock".equals(apiKey)) {
             try {
@@ -69,10 +76,22 @@ public class AiController {
                     .timeout(20000) // 设置超时时间 20秒
                     .execute();
 
+            if (response.getStatus() >= 400) {
+                logger.log(Level.WARNING, "DeepSeek 响应异常, status=" + response.getStatus());
+                Map<String, String> errorResult = new HashMap<>();
+                errorResult.put("error", "AI 服务暂时不可用，请稍后再试");
+                return ResponseEntity.status(502).body(errorResult);
+            }
+
             // 4. 解析结果
             String body = response.body();
 
             JSONObject jsonResponse = JSONUtil.parseObj(body);
+            if (!jsonResponse.containsKey("choices") || jsonResponse.getJSONArray("choices").isEmpty()) {
+                Map<String, String> errorResult = new HashMap<>();
+                errorResult.put("error", "AI 返回结果异常，请稍后重试");
+                return ResponseEntity.status(502).body(errorResult);
+            }
             // 提取 AI 说的话 (DeepSeek 的返回结构是 choices[0].message.content)
             String content = jsonResponse.getJSONArray("choices")
                     .getJSONObject(0)

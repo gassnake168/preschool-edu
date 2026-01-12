@@ -4,6 +4,7 @@ import com.preschool.backend.entity.User;
 import com.preschool.backend.repository.UserRepository;
 import com.preschool.backend.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -18,6 +19,9 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Value("${security.allow-anonymous:false}")
+    private boolean allowAnonymous;
 
     @GetMapping
     public List<com.preschool.backend.dto.UserDTO> getAllUsers() {
@@ -71,8 +75,22 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public Map<String, Object> updateProfile(@RequestBody Map<String, String> params) {
-        String username = params.get("username");
+    public Map<String, Object> updateProfile(org.springframework.security.core.Authentication authentication,
+                                             @RequestBody Map<String, String> params) {
+        if (allowAnonymous && (authentication == null || authentication.getName() == null)) {
+            String username = params.get("username");
+            if (username == null || username.isBlank()) {
+                return Map.of("code", 400, "message", "用户名不能为空");
+            }
+            return updateProfileForUser(username, params);
+        }
+        if (authentication == null || authentication.getName() == null) {
+            return Map.of("code", 401, "message", "未登录或登录已过期");
+        }
+        return updateProfileForUser(authentication.getName(), params);
+    }
+
+    private Map<String, Object> updateProfileForUser(String username, Map<String, String> params) {
         String realName = params.get("realName");
         String phone = params.get("phone");
         String gender = params.get("gender");

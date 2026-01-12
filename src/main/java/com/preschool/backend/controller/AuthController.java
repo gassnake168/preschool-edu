@@ -23,6 +23,9 @@ public class AuthController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
     /**
      * 登录接口
      * 请求地址: POST http://localhost:8080/api/auth/login
@@ -30,6 +33,13 @@ public class AuthController {
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody LoginRequest request) {
         Map<String, Object> result = new HashMap<>();
+
+        if (request == null || request.getUsername() == null || request.getUsername().trim().isEmpty()
+                || request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            result.put("code", 400);
+            result.put("message", "用户名和密码不能为空");
+            return result;
+        }
 
         try {
             // 从数据库查找用户
@@ -39,7 +49,7 @@ public class AuthController {
             if (userOpt.isPresent() && PasswordUtil.matches(request.getPassword(), userOpt.get().getPassword())) {
                 com.preschool.backend.entity.User user = userOpt.get();
                 // 登录成功 - 生成真实的 JWT Token
-                String token = JwtUtil.generateToken(user.getUsername(), user.getRole());
+                String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
                 result.put("code", 200);
                 result.put("message", "登录成功！欢迎回来。");
