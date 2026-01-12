@@ -71,8 +71,12 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public Map<String, Object> updateProfile(@RequestBody Map<String, String> params) {
-        String username = params.get("username");
+    public Map<String, Object> updateProfile(org.springframework.security.core.Authentication authentication,
+                                             @RequestBody Map<String, String> params) {
+        if (authentication == null || authentication.getName() == null) {
+            return Map.of("code", 401, "message", "未登录或登录已过期");
+        }
+        String username = authentication.getName();
         String realName = params.get("realName");
         String phone = params.get("phone");
         String gender = params.get("gender");
