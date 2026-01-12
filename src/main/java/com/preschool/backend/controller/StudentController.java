@@ -3,7 +3,10 @@ package com.preschool.backend.controller;
 import com.preschool.backend.entity.Student;
 import com.preschool.backend.repository.StudentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +27,16 @@ public class StudentController {
     }
 
     @GetMapping("/my")
-    public List<Student> getStudentsByParent(@RequestParam String parentUsername) {
-        return studentRepository.findByParentUsername(parentUsername);
+    public List<Student> getStudentsByParent(Authentication authentication,
+                                              @RequestParam(required = false) String parentUsername) {
+        if (authentication == null || authentication.getName() == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "未登录或登录已过期");
+        }
+        String username = authentication.getName();
+        if (parentUsername != null && !parentUsername.isBlank() && !parentUsername.equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "无权限访问");
+        }
+        return studentRepository.findByParentUsername(username);
     }
 
     @PostMapping

@@ -4,6 +4,8 @@ import com.preschool.backend.entity.Course;
 import com.preschool.backend.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
@@ -17,9 +19,23 @@ public class CourseController {
 
     @GetMapping
     public ResponseEntity<?> getAllCourses(
+            Authentication authentication,
             @RequestParam(required = false) String teacherName,
             @RequestParam(required = false) String parentUsername) {
-        return ResponseEntity.ok(courseService.getAllCourses(teacherName, parentUsername));
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(401).body("未登录或登录已过期");
+        }
+        String username = authentication.getName();
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_TEACHER"))) {
+            return ResponseEntity.ok(courseService.getAllCourses(username, null));
+        }
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_PARENT"))) {
+            return ResponseEntity.ok(courseService.getAllCourses(null, username));
+        }
+        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
+            return ResponseEntity.ok(courseService.getAllCourses(teacherName, parentUsername));
+        }
+        return ResponseEntity.status(403).body("无权限访问");
     }
 
     @PostMapping
