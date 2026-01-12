@@ -12,7 +12,7 @@ export default function ProfileModal({ isOpen, user, onUpdate, onClose, showDial
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         try {
-            const token = localStorage.getItem('token');
+            const token = user?.token;
             const res = await fetch('http://localhost:8080/api/users/profile', {
                 method: 'PUT',
                 headers: {
